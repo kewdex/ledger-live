@@ -15,6 +15,7 @@ For adding or updating E2E scenarios, read
 | `fixtures`             | Playwright test fixtures and app launch setup  |
 | `page`                 | Page objects with reusable UI actions          |
 | `models`               | Test model helpers                             |
+| `component`            | Component tests                                |
 | `specs`                | Test scenarios                                 |
 | `mocks` and `handlers` | Local mock data and MSW handlers               |
 | `utils`                | Test utilities, setup, teardown, and reporters |
