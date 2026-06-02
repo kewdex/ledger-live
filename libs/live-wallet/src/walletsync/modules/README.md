@@ -2,7 +2,7 @@
 
 This directory contains WalletSync module implementations. For broader design
 context, see the internal
-[WalletSync module tutorial](https://ledgerhq.atlassian.net/wiki/spaces/WXP/pages/4862509091/TODO+how+to+develop+a+new+WalletSync+module).
+[WalletSync module tutorial](https://ledgerhq.atlassian.net/wiki/spaces/WXP/pages/4862509091).
 
 ## New Module Template
 
