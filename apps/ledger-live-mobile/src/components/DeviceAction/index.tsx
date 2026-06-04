@@ -141,6 +141,38 @@ type Props<H extends Status, P> = {
   onError?: (_: Error) => Promise<void> | void;
   onOpenManager?: () => void;
   renderOnResult?: (_: P) => React.JSX.Element | null;
+  /**
+   * Overrides the default transaction signature confirmation UI (ValidateOnDevice)
+   * with a custom rendering once the device requests the transaction signature.
+   */
+  renderDeviceSignatureRequested?: (args: { device: Device }) => React.JSX.Element | null;
+  /**
+   * Overrides the default "allow/open app" device UI. Useful for flows that keep a
+   * simplified signing prompt while the secure connection is being approved.
+   */
+  renderAllowOpeningRequested?: (args: { device: Device }) => React.JSX.Element | null;
+  /**
+   * Overrides the default "allow secure connection" (manager) device UI with a custom
+   * rendering. Useful to keep a simplified prompt while the secure channel is opening.
+   */
+  renderAllowManagerRequested?: (args: { device: Device }) => React.JSX.Element | null;
+  renderLoading?: (args: {
+    description?: string;
+    device: Device;
+    connectedDevice?: Device | null;
+    isWaitingForAppConnection?: boolean;
+  }) => React.JSX.Element | null;
+  renderConnectYourDevice?: (args: {
+    device: Device;
+    unresponsive?: boolean | null;
+    isLocked?: boolean;
+    onRetry: () => void;
+  }) => React.JSX.Element | null;
+  renderError?: (args: {
+    error: Error;
+    onRetry?: (() => void) | null;
+    device?: Device | null;
+  }) => React.JSX.Element | null;
   status: H;
   device: Device;
   payload?: P | null;
@@ -186,6 +218,12 @@ export function DeviceActionDefaultRendering<R, H extends Status, P>({
   onOpenManager,
   device: selectedDevice,
   renderOnResult,
+  renderDeviceSignatureRequested,
+  renderAllowOpeningRequested,
+  renderAllowManagerRequested,
+  renderLoading: renderLoadingOverride,
+  renderConnectYourDevice,
+  renderError: renderErrorOverride,
   onSelectDeviceLink,
   analyticsPropertyFlow = "unknown",
   status,
@@ -503,6 +541,9 @@ export function DeviceActionDefaultRendering<R, H extends Status, P>({
   }
 
   if (allowManagerRequested) {
+    if (renderAllowManagerRequested && selectedDevice) {
+      return renderAllowManagerRequested({ device: selectedDevice });
+    }
     return renderAllowManager({
       t,
       device: selectedDevice,
@@ -560,6 +601,15 @@ export function DeviceActionDefaultRendering<R, H extends Status, P>({
   }
 
   if (listingApps) {
+    if (renderLoadingOverride) {
+      return renderLoadingOverride({
+        description: t("DeviceAction.listApps"),
+        device: selectedDevice,
+        connectedDevice: device,
+        isWaitingForAppConnection: false,
+      });
+    }
+
     return renderLoading({
       t,
       description: t("DeviceAction.listApps"),
@@ -619,6 +669,10 @@ export function DeviceActionDefaultRendering<R, H extends Status, P>({
   }
 
   if (allowOpeningRequestedWording || requestOpenApp) {
+    if (renderAllowOpeningRequested && selectedDevice) {
+      return renderAllowOpeningRequested({ device: selectedDevice });
+    }
+
     // requestOpenApp for Nano S 1.3.1 (need to ask user to open the app.)
     const wording = allowOpeningRequestedWording || requestOpenApp;
     return renderAllowOpeningApp({
@@ -645,6 +699,10 @@ export function DeviceActionDefaultRendering<R, H extends Status, P>({
   if (!isLoading && error) {
     /** @TODO Put that back if the app is still crashing */
     // track("DeviceActionError", error);
+
+    if (renderErrorOverride) {
+      return renderErrorOverride({ error, onRetry, device });
+    }
 
     // NB Until we find a better way, remap the error if it's 6d06 (LNS, LNSP, LNX) or 6d07 (Stax) and we haven't fallen
     // into another handled case.
@@ -703,6 +761,15 @@ export function DeviceActionDefaultRendering<R, H extends Status, P>({
   }
 
   if ((!isLoading && !device) || unresponsive || isLocked) {
+    if (renderConnectYourDevice) {
+      return renderConnectYourDevice({
+        device: selectedDevice,
+        unresponsive,
+        isLocked: isLocked === null ? undefined : isLocked,
+        onRetry: onRetry ?? (() => {}),
+      });
+    }
+
     return (
       <ConnectYourDevice
         device={selectedDevice}
@@ -714,6 +781,14 @@ export function DeviceActionDefaultRendering<R, H extends Status, P>({
   }
 
   if (isLoading || (allowOpeningGranted && !appAndVersion)) {
+    if (renderLoadingOverride) {
+      return renderLoadingOverride({
+        device: selectedDevice,
+        connectedDevice: device,
+        isWaitingForAppConnection: !appAndVersion,
+      });
+    }
+
     return renderLoading({
       t,
       colors,
@@ -732,6 +807,16 @@ export function DeviceActionDefaultRendering<R, H extends Status, P>({
   if (request && device && deviceSignatureRequested) {
     const { account, parentAccount, status, transaction } =
       request as unknown as React.ComponentProps<typeof ValidateOnDevice>;
+
+    if (renderDeviceSignatureRequested) {
+      return (
+        <>
+          <PreventNativeBack />
+          <SkipLock />
+          {renderDeviceSignatureRequested({ device })}
+        </>
+      );
+    }
 
     if (account && status && transaction) {
       navigation.setOptions({
@@ -781,6 +866,20 @@ export function DeviceActionDefaultRendering<R, H extends Status, P>({
   }
 
   if (typeof deviceStreamingProgress === "number") {
+    if (renderLoadingOverride) {
+      return renderLoadingOverride({
+        device: selectedDevice,
+        connectedDevice: device,
+        isWaitingForAppConnection: false,
+        description:
+          deviceStreamingProgress > 0
+            ? t("send.verification.streaming.accurate", {
+                percentage: (deviceStreamingProgress * 100).toFixed(0) + "%",
+              })
+            : t("send.verification.streaming.inaccurate"),
+      });
+    }
+
     return renderLoading({
       t,
       description:

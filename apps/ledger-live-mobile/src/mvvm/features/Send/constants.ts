@@ -73,6 +73,7 @@ export const SEND_STEP_CONFIGS: Record<SendFlowStep, SendStepConfig> = {
     showHeaderRight: false,
     screenName: ScreenName.SendFlowSignature,
     bottomSheet: true,
+    bottomSheetSnapPoints: ["50%", "60%"],
     onBottomSheetClose: ({ navigation, close }) => {
       if (navigation.canGoBack()) {
         navigation.goBack();

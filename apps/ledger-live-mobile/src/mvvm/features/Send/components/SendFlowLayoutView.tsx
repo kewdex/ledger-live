@@ -73,7 +73,7 @@ export function SendFlowLayoutView({ headerRight, headerContent, children }: Sen
       <View style={styles.bottomSheetContainer}>
         <QueuedDrawerBottomSheet
           isRequestingToBeOpened
-          snapPoints="medium"
+          snapPoints={currentStepConfig?.bottomSheetSnapPoints ?? "medium"}
           onClose={handleBottomSheetClose}
         >
           <BottomSheetView style={styles.bottomSheetContent}>

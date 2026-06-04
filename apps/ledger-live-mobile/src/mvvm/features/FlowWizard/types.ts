@@ -1,5 +1,6 @@
 import type { NativeStackNavigationOptions } from "@react-navigation/native-stack";
 import type { NavigationProp, ParamListBase } from "@react-navigation/native";
+import type { BottomSheetProps } from "@ledgerhq/lumen-ui-rnative";
 import type {
   FlowStep,
   FlowStepConfig,
@@ -18,6 +19,8 @@ export type ReactNativeFlowStepConfig<TStep extends FlowStep = FlowStep> = FlowS
   Readonly<{
     screenName?: string;
     bottomSheet?: boolean;
+    /** Snap points for the bottom sheet step. Defaults to "medium" when omitted. */
+    bottomSheetSnapPoints?: BottomSheetProps["snapPoints"];
     onBottomSheetClose?: (params: ReactNativeFlowBottomSheetCloseParams) => void;
     screenOptions?: NativeStackNavigationOptions;
     initialParams?: Record<string, unknown>;
