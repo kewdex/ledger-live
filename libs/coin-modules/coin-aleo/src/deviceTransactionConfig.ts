@@ -9,6 +9,8 @@ const mapTransactionModeToMethod: Record<TransactionType, string> = {
   [TRANSACTION_TYPE.TRANSFER_PRIVATE]: "Transfer Private",
   [TRANSACTION_TYPE.CONVERT_PUBLIC_TO_PRIVATE]: "Shield",
   [TRANSACTION_TYPE.CONVERT_PRIVATE_TO_PUBLIC]: "Unshield",
+  [TRANSACTION_TYPE.TRANSFER_TOKEN_PUBLIC]: "Transfer Token Public",
+  [TRANSACTION_TYPE.CONVERT_TOKEN_PUBLIC_TO_PRIVATE]: "Token Shield",
 };
 
 async function getDeviceTransactionConfig({

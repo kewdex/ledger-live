@@ -161,6 +161,7 @@ export const toBridgeOperation = (
   ledgerAccountId: string,
   rawTx: AleoPublicTransaction,
   address: string,
+  isTokenTx?: boolean,
 ): AleoOperation => {
   const value = new BigNumber(rawTx.amount);
   const { type, fee, blockHash, transactionType, date, hasFailed } = parseTransactionFields(
@@ -188,6 +189,11 @@ export const toBridgeOperation = (
     extra: {
       functionId: rawTx.function_id,
       transactionType,
+      ...(isTokenTx && {
+        tokenInfo: {
+          programId: rawTx.program_id,
+        },
+      }),
     },
   };
 };
@@ -525,7 +531,6 @@ export function getAvailableBalance(account: AleoAccount, transaction: Transacti
       );
     }
     default:
-      // @ts-expect-error - runtime check to ensure all transaction types are handled
       throw new Error(`aleo: unsupported tx mode for balance calculation: ${transaction.mode}`);
   }
 }

@@ -3,6 +3,8 @@ import type {
   Account,
   AccountRaw,
   Operation,
+  TokenAccount,
+  TokenAccountRaw,
   TransactionCommon,
   TransactionCommonRaw,
   TransactionStatusCommon,
@@ -38,6 +40,14 @@ export type Transaction = TransactionCommon & {
           feeRecordCommitment: string | null;
         };
       }
+    | {
+        mode: typeof TRANSACTION_TYPE.TRANSFER_TOKEN_PUBLIC;
+        properties?: never;
+      }
+    | {
+        mode: typeof TRANSACTION_TYPE.CONVERT_TOKEN_PUBLIC_TO_PRIVATE;
+        properties?: never;
+      }
   );
 
 export type TransactionRaw = TransactionCommonRaw & {
@@ -66,6 +76,14 @@ export type TransactionRaw = TransactionCommonRaw & {
           feeRecordCommitment: string | null;
         };
       }
+    | {
+        mode: typeof TRANSACTION_TYPE.TRANSFER_TOKEN_PUBLIC;
+        properties?: never;
+      }
+    | {
+        mode: typeof TRANSACTION_TYPE.CONVERT_TOKEN_PUBLIC_TO_PRIVATE;
+        properties?: never;
+      }
   );
 
 export type TransactionStatus = TransactionStatusCommon;
@@ -78,6 +96,7 @@ export interface AleoResources {
   privateBalance: BigNumber | null;
   unspentPrivateRecords: AleoUnspentRecord[] | null;
   lastPrivateSyncDate: Date | null;
+  hasMigratedPublicTokens?: boolean;
 }
 
 export interface AleoResourcesRaw {
@@ -86,6 +105,7 @@ export interface AleoResourcesRaw {
   privateBalance: string | null;
   unspentPrivateRecords: string | null;
   lastPrivateSyncDate: string | null;
+  hasMigratedPublicTokens?: boolean;
 }
 
 export type AleoAccount = Account & {
@@ -96,12 +116,28 @@ export type AleoAccountRaw = AccountRaw & {
   aleoResources?: AleoResourcesRaw;
 };
 
+export type AleoTokenAccount = TokenAccount & {
+  transparentBalance: BigNumber;
+  privateBalance: BigNumber | null;
+  unspentPrivateRecords: AleoUnspentRecord[] | null;
+};
+
+export type AleoTokenAccountRaw = TokenAccountRaw & {
+  transparentBalance: string;
+  privateBalance: string | null;
+  unspentPrivateRecords: string | null;
+};
+
 export type AleoOperationExtra = {
   functionId: string;
   // this field is used to determine the type of balance that is related to the operation
   transactionType: AleoTransactionType;
   // this field is used to indicate that semi-public operation has been patched with private data after private sync
   patched?: boolean;
+  // this field is used to store the token information for token operations
+  tokenInfo?: {
+    programId: string;
+  };
 };
 
 export type OperationDetailsExtraField = {
@@ -114,7 +150,11 @@ export type AleoOperation = Operation<AleoOperationExtra>;
 export type TransactionTransfer = Extract<
   Transaction,
   {
-    mode: typeof TRANSACTION_TYPE.TRANSFER_PUBLIC | typeof TRANSACTION_TYPE.TRANSFER_PRIVATE;
+    mode:
+      | typeof TRANSACTION_TYPE.TRANSFER_PUBLIC
+      | typeof TRANSACTION_TYPE.TRANSFER_PRIVATE
+      | typeof TRANSACTION_TYPE.TRANSFER_TOKEN_PUBLIC
+      | typeof TRANSACTION_TYPE.CONVERT_TOKEN_PUBLIC_TO_PRIVATE;
   }
 >;
 
@@ -132,7 +172,9 @@ export type TransactionPublic = Extract<
   {
     mode:
       | typeof TRANSACTION_TYPE.CONVERT_PUBLIC_TO_PRIVATE
-      | typeof TRANSACTION_TYPE.TRANSFER_PUBLIC;
+      | typeof TRANSACTION_TYPE.TRANSFER_PUBLIC
+      | typeof TRANSACTION_TYPE.TRANSFER_TOKEN_PUBLIC
+      | typeof TRANSACTION_TYPE.CONVERT_TOKEN_PUBLIC_TO_PRIVATE;
   }
 >;
 
