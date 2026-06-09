@@ -9,6 +9,7 @@ import { getDescription } from "tests/utils/customJsonReporter";
 import { SwapProvider } from "@ledgerhq/live-common/e2e/enum/Provider";
 import {
   setupEnv,
+  setupTokenRevoke,
   performSwapUntilQuoteSelectionStep,
   ensureTokenApproval,
 } from "tests/utils/swapUtils";
@@ -36,6 +37,7 @@ const providerFlowTests = [
 for (const { fromAccount, toAccount, provider, xrayTicket, bugTickets } of providerFlowTests) {
   test.describe(`Swap - ${provider.uiName} flow`, () => {
     setupEnv(true);
+    setupTokenRevoke(fromAccount, provider);
 
     test.use({
       teamOwner: Team.SWAP,

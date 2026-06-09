@@ -5,8 +5,8 @@ import { Swap } from "@ledgerhq/live-common/e2e/models/Swap";
 import { SwapProvider } from "@ledgerhq/live-common/e2e/enum/Provider";
 import {
   setupEnv,
+  setupTokenRevoke,
   performSwapUntilQuoteSelectionStep,
-  revokeTokenApproval,
 } from "tests/utils/swapUtils";
 import { liveDataWithAddressCommand } from "@ledgerhq/live-common/e2e/cliCommandsUtils";
 import { addTmsLink } from "tests/utils/allureUtils";
@@ -33,6 +33,7 @@ test.describe("Token approval - flow", () => {
   );
 
   setupEnv(false);
+  setupTokenRevoke(fromAccount, provider);
 
   test.use({
     teamOwner: Team.SWAP,
@@ -68,8 +69,6 @@ test.describe("Token approval - flow", () => {
     async ({ app }) => {
       await app.swap.logSelectedProvider(provider.uiName);
       await addTmsLink(getDescription(test.info().annotations, "TMS").split(", "));
-      await revokeTokenApproval(fromAccount, provider);
-      await app.swap.ensureRevokeTokenApproval(fromAccount, provider);
       const minAmount = await app.swap.getMinimumAmount(fromAccount, toAccount);
       const swap = new Swap(fromAccount, toAccount, minAmount, provider);
       await performSwapUntilQuoteSelectionStep(app, swap, minAmount);

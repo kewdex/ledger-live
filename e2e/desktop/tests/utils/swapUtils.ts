@@ -17,6 +17,7 @@ import {
 import { getEnv } from "@ledgerhq/live-env";
 import * as allure from "allure-js-commons";
 import BigNumber from "bignumber.js";
+import { expect } from "@playwright/test";
 import { launchSpeculos, cleanSpeculos } from "./speculosUtils";
 
 export function setupEnv(disableBroadcast: boolean = false): void {
@@ -148,18 +149,29 @@ export async function ensureTokenApproval(
   }
 }
 
-export async function revokeTokenApproval(fromAccount: TokenAccount, provider: SwapProvider) {
-  if (!provider.contractAddress) return;
+export async function revokeTokenApproval(
+  fromAccount: Account | TokenAccount,
+  provider: SwapProvider,
+) {
+  if (!provider.contractAddress || !fromAccount.parentAccount) return;
 
-  const allowance = await getTokenAllowanceCommand(fromAccount, provider.contractAddress);
-  if (allowance === "0") return;
-
-  const previousSpeculosPort = getEnv("SPECULOS_API_PORT");
-  const speculos = await launchSpeculos(fromAccount.currency.speculosApp.name);
-  try {
-    const result = await revokeTokenCommand(fromAccount, provider.contractAddress);
-    await allure.description(`Token revoke result for ${provider.uiName}:\n\n ${result}`);
-  } finally {
-    await cleanSpeculos(speculos, previousSpeculosPort);
+  let allowance = await getTokenAllowanceCommand(fromAccount, provider.contractAddress);
+  if (allowance !== "0") {
+    const previousSpeculosPort = getEnv("SPECULOS_API_PORT");
+    const speculos = await launchSpeculos(fromAccount.currency.speculosApp.name);
+    try {
+      const result = await revokeTokenCommand(fromAccount, provider.contractAddress);
+      await allure.description(`Token revoke result for ${provider.uiName}:\n\n ${result}`);
+    } finally {
+      await cleanSpeculos(speculos, previousSpeculosPort);
+    }
+    allowance = await getTokenAllowanceCommand(fromAccount, provider.contractAddress);
   }
+  expect(allowance).toBe("0");
+}
+
+export function setupTokenRevoke(fromAccount: Account | TokenAccount, provider: SwapProvider) {
+  test.beforeEach(async () => {
+    await revokeTokenApproval(fromAccount, provider);
+  });
 }
