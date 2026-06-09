@@ -25,6 +25,11 @@ jest.mock("~/renderer/hooks/useLocalizedUrls", () => ({
   useLocalizedUrl: () => "https://stake.example",
 }));
 jest.mock("~/renderer/linking", () => ({ __esModule: true, openURL: jest.fn() }));
+const mockNavigate = jest.fn();
+jest.mock("react-router", () => ({
+  ...jest.requireActual("react-router"),
+  useNavigate: () => mockNavigate,
+}));
 jest.mock("@ledgerhq/live-common/bridge/react/index", () => ({
   __esModule: true,
   SyncOneAccountOnMount: () => null,
@@ -171,17 +176,18 @@ describe("StakeFlowModal/StepConfirmation", () => {
     expect(props.transitionTo).toHaveBeenCalledWith("amount");
   });
 
-  it("footer success CTA closes the modal", () => {
+  it("footer success CTA closes the modal and navigates to the account page", () => {
     const props = makeProps({ optimisticOperation: makeOp() });
     let result: ReturnType<typeof render>;
     act(() => {
       result = render(<StepConfirmationFooter {...props} />);
     });
-    const cta = result!.container.querySelector("#tezos-stake-confirmation-visit-earn-button");
+    const cta = result!.container.querySelector("#tezos-stake-confirmation-visit-account-button");
     expect(cta).toBeInTheDocument();
     act(() => {
       fireEvent.click(cta!);
     });
     expect(props.onClose).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(`/account/${props.account?.id}`);
   });
 });
