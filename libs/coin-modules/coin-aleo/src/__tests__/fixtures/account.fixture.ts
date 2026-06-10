@@ -1,12 +1,16 @@
 import BigNumber from "bignumber.js";
+import { encodeTokenAccountId } from "@ledgerhq/ledger-wallet-framework/account";
+import type { TokenCurrency } from "@ledgerhq/types-cryptoassets";
 import type {
   AleoAccount,
   AleoAccountRaw,
   AleoResources,
   AleoResourcesRaw,
+  AleoTokenAccount,
+  AleoTokenAccountRaw,
   AleoUnspentRecord,
 } from "../../types";
-import { getMockedCurrency } from "./currency.fixture";
+import { getMockedCurrency, getMockedTokenCurrency } from "./currency.fixture";
 import { getMockedRecord } from "./api.fixture";
 
 const defaultMockedCurrency = getMockedCurrency();
@@ -60,6 +64,11 @@ export const mockUnspentRecord2: AleoUnspentRecord = {
   },
 };
 
+export const mockTokenRecord1: AleoUnspentRecord = {
+  ...mockUnspentRecord1,
+  commitment: "token-amount-record-1",
+};
+
 export const getMockedAccount = (overrides?: Partial<AleoAccount>): AleoAccount => {
   return {
     type: "Account",
@@ -90,6 +99,64 @@ export const getMockedAccount = (overrides?: Partial<AleoAccount>): AleoAccount 
     ...overrides,
   };
 };
+
+export function getMockedTokenAccount(
+  token: TokenCurrency = getMockedTokenCurrency(),
+  overrides?: Partial<AleoTokenAccount>,
+): AleoTokenAccount {
+  const parentId = overrides?.parentId ?? defaultMockAccountId;
+  const id = overrides?.id ?? encodeTokenAccountId(parentId, token);
+  const balance = overrides?.balance ?? new BigNumber(500000);
+
+  return {
+    type: "TokenAccount",
+    id,
+    parentId,
+    token,
+    balance,
+    spendableBalance: overrides?.spendableBalance ?? balance,
+    creationDate: new Date(),
+    operations: [],
+    operationsCount: 0,
+    pendingOperations: [],
+    balanceHistoryCache: {
+      HOUR: { latestDate: null, balances: [] },
+      DAY: { latestDate: null, balances: [] },
+      WEEK: { latestDate: null, balances: [] },
+    },
+    swapHistory: [],
+    transparentBalance: overrides?.transparentBalance ?? balance,
+    privateBalance: overrides?.privateBalance ?? null,
+    unspentPrivateRecords: overrides?.unspentPrivateRecords ?? null,
+    ...overrides,
+  };
+}
+
+export function getMockedTokenAccountRaw(
+  tokenAccount: AleoTokenAccount = getMockedTokenAccount(),
+  overrides?: Partial<AleoTokenAccountRaw>,
+): AleoTokenAccountRaw {
+  return {
+    type: "TokenAccountRaw",
+    id: tokenAccount.id,
+    parentId: tokenAccount.parentId,
+    tokenId: tokenAccount.token.id,
+    balance: tokenAccount.balance.toString(),
+    spendableBalance: tokenAccount.spendableBalance.toString(),
+    creationDate: tokenAccount.creationDate.toISOString(),
+    operations: [],
+    operationsCount: 0,
+    pendingOperations: [],
+    balanceHistoryCache: tokenAccount.balanceHistoryCache,
+    swapHistory: [],
+    transparentBalance: tokenAccount.transparentBalance.toString(),
+    privateBalance: tokenAccount.privateBalance?.toString() ?? null,
+    unspentPrivateRecords: tokenAccount.unspentPrivateRecords
+      ? JSON.stringify(tokenAccount.unspentPrivateRecords)
+      : null,
+    ...overrides,
+  };
+}
 
 export const getMockedAccountRaw = (overrides?: Partial<AleoAccountRaw>): AleoAccountRaw => {
   return {
