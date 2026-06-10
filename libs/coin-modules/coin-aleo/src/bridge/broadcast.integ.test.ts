@@ -1,7 +1,7 @@
 import { broadcast } from "./broadcast";
 import coinConfig from "../config";
-import { TRANSACTION_TYPE } from "../constants";
 import { getMockedAccount } from "../__tests__/fixtures/account.fixture";
+import { mockFeeByTransactionType } from "../__tests__/fixtures/config.fixture";
 import { getMockedOperation } from "../__tests__/fixtures/operation.fixture";
 
 describe("Broadcast", () => {
@@ -13,12 +13,7 @@ describe("Broadcast", () => {
         node: "https://aleo.coin.ledger.com",
         sdk: "https://aleo-backend.api.live.ledger.com/network/mainnet",
       },
-      feeByTransactionType: {
-        [TRANSACTION_TYPE.TRANSFER_PUBLIC]: 34060,
-        [TRANSACTION_TYPE.TRANSFER_PRIVATE]: 2308,
-        [TRANSACTION_TYPE.CONVERT_PUBLIC_TO_PRIVATE]: 17972,
-        [TRANSACTION_TYPE.CONVERT_PRIVATE_TO_PUBLIC]: 18494,
-      },
+      feeByTransactionType: mockFeeByTransactionType,
       feeSafetyMultiplier: 1.0,
       isFeeSponsored: false,
       enableTokens: false,

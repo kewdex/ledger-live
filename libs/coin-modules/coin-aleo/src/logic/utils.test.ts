@@ -626,8 +626,12 @@ describe("getOperationTransactionType", () => {
   it.each([
     ["private", TRANSACTION_TYPE.TRANSFER_PRIVATE],
     ["private", TRANSACTION_TYPE.CONVERT_PRIVATE_TO_PUBLIC],
+    ["private", TRANSACTION_TYPE.TRANSFER_TOKEN_PRIVATE],
+    ["private", TRANSACTION_TYPE.CONVERT_TOKEN_PRIVATE_TO_PUBLIC],
     ["public", TRANSACTION_TYPE.TRANSFER_PUBLIC],
     ["public", TRANSACTION_TYPE.CONVERT_PUBLIC_TO_PRIVATE],
+    ["public", TRANSACTION_TYPE.TRANSFER_TOKEN_PUBLIC],
+    ["public", TRANSACTION_TYPE.CONVERT_TOKEN_PUBLIC_TO_PRIVATE],
     ["public", "unknown_type" as any],
   ])("should return '%s' for transaction type '%s'", (expected, transactionType) => {
     expect(getOperationTransactionType(transactionType)).toBe(expected);
@@ -1160,6 +1164,8 @@ describe("isSelfTransferTransaction", () => {
   it.each([
     [true, TRANSACTION_TYPE.CONVERT_PUBLIC_TO_PRIVATE],
     [true, TRANSACTION_TYPE.CONVERT_PRIVATE_TO_PUBLIC],
+    [true, TRANSACTION_TYPE.CONVERT_TOKEN_PUBLIC_TO_PRIVATE],
+    [true, TRANSACTION_TYPE.CONVERT_TOKEN_PRIVATE_TO_PUBLIC],
     [false, "other_type" as never],
   ])("should return %s for mode '%s'", (expected, mode) => {
     const transaction = getMockedTransaction({ mode });
@@ -1172,6 +1178,8 @@ describe("isPublicTransaction", () => {
   it.each([
     [true, TRANSACTION_TYPE.TRANSFER_PUBLIC],
     [true, TRANSACTION_TYPE.CONVERT_PUBLIC_TO_PRIVATE],
+    [true, TRANSACTION_TYPE.TRANSFER_TOKEN_PUBLIC],
+    [true, TRANSACTION_TYPE.CONVERT_TOKEN_PUBLIC_TO_PRIVATE],
     [false, "other_type" as never],
   ])("should return %s for mode '%s'", (expected, mode) => {
     const transaction = getMockedTransaction({ mode });
@@ -1184,6 +1192,8 @@ describe("isPrivateTransaction", () => {
   it.each([
     [true, TRANSACTION_TYPE.TRANSFER_PRIVATE],
     [true, TRANSACTION_TYPE.CONVERT_PRIVATE_TO_PUBLIC],
+    [true, TRANSACTION_TYPE.TRANSFER_TOKEN_PRIVATE],
+    [true, TRANSACTION_TYPE.CONVERT_TOKEN_PRIVATE_TO_PUBLIC],
     [false, "other_type" as never],
   ])("should return %s for mode '%s'", (expected, mode) => {
     const transaction = getMockedTransaction({ mode });
@@ -1276,7 +1286,7 @@ describe("createTransactionIntent", () => {
     });
 
     expect(() => createTransactionIntent({ account: mockAccount, transaction })).toThrow(
-      "aleo: no amount records found for given commitments: non-existent-commitment",
+      "aleo: missing amount records",
     );
   });
 
@@ -1309,7 +1319,7 @@ describe("createTransactionIntent", () => {
     });
 
     expect(() => createTransactionIntent({ account: mockAccount, transaction })).toThrow(
-      `aleo: too many amount record commitments selected (max: ${MAX_PRIVATE_RECORDS_PER_TRANSACTION})`,
+      `aleo: too many amount records selected (max: ${MAX_PRIVATE_RECORDS_PER_TRANSACTION})`,
     );
   });
 });
